@@ -30,39 +30,63 @@ RegisterCommand("pzcreate", function(src, args)
   TriggerEvent("polyzone:pzcreate", zoneType, name, args)
 end)
 
-RegisterCommand("pzadd", function(src, args)
-  TriggerEvent("polyzone:pzadd")
-end)
+local zoneCommands = {
+    pzadd = "polyzone:pzadd",
+    pzundo = "polyzone:pzundo",
+    pzfinish = "polyzone:pzfinish",
+    pzlast = "polyzone:pzlast",
+    pzcancel = "polyzone:pzcancel",
+    pzcomboinfo = "polyzone:pzcomboinfo",
+}
 
-RegisterCommand("pzundo", function(src, args)
-  TriggerEvent("polyzone:pzundo")
-end)
+for cmd, eventName in pairs(zoneCommands) do
+    RegisterCommand(cmd, function(src, args)
+        TriggerEvent(eventName)
+    end)
+end
 
-RegisterCommand("pzfinish", function(src, args)
-  TriggerEvent("polyzone:pzfinish")
-end)
-
-RegisterCommand("pzlast", function(src, args)
-  TriggerEvent("polyzone:pzlast")
-end)
-
-RegisterCommand("pzcancel", function(src, args)
-  TriggerEvent("polyzone:pzcancel")
-end)
-
-RegisterCommand("pzcomboinfo", function (src, args)
-    TriggerEvent("polyzone:pzcomboinfo")
-end)
+local suggestions = {
+    {
+        cmd = "pzcreate",
+        help = "Creates a new zone of the specified type (circle, box, poly)",
+        args = {
+            {name = "zoneType", help = "The type of zone to create (poly, circle, box)"},
+        }
+    },
+    {
+        cmd = "pzadd",
+        help = "Adds a point to the current zone being created",
+        args = {{}}
+    },
+    {
+        cmd = "pzundo",
+        help = "Undoes the last point added to the current zone",
+        args = {{}}
+    },
+    {
+        cmd = "pzfinish",
+        help = "Finishes and prints the current zone being created",
+        args = {{}}
+    },
+    {
+        cmd = "pzlast",
+        help = "Re-creates the last zone you finished (only works on BoxZone and CircleZone)",
+        args = {{}}
+    },
+    {
+        cmd = "pzcancel",
+        help = "Cancels creation of the current zone",
+        args = {{}}
+    },
+    {
+        cmd = "pzcomboinfo",
+        help = "Prints useful info for all created ComboZones",
+        args = {{}}
+    }
+}
 
 Citizen.CreateThread(function()
-  TriggerEvent('chat:addSuggestion', '/pzcreate', 'Starts creation of a zone for PolyZone of one of the available types: circle, box, poly', {
-    {name="zoneType", help="Zone Type (required)"},
-  })
-
-  TriggerEvent('chat:addSuggestion', '/pzadd', 'Adds point to zone.', {})
-  TriggerEvent('chat:addSuggestion', '/pzundo', 'Undoes the last point added.', {})
-  TriggerEvent('chat:addSuggestion', '/pzfinish', 'Finishes and prints zone.', {})
-  TriggerEvent('chat:addSuggestion', '/pzlast', 'Starts creation of the last zone you finished (only works on BoxZone and CircleZone)', {})
-  TriggerEvent('chat:addSuggestion', '/pzcancel', 'Cancel zone creation.', {})
-  TriggerEvent('chat:addSuggestion', '/pzcomboinfo', 'Prints some useful info for all created ComboZones', {})
+    for _, s in ipairs(suggestions) do
+        TriggerEvent('chat:addSuggestion', '/' .. s.cmd, s.help, s.args)
+    end
 end)
