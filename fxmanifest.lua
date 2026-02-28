@@ -4,6 +4,8 @@ fx_version 'cerulean'
 
 -- See https://github.com/mkafrin/PolyZone and https://github.com/mkafrin/PolyZone/wiki
 
+name 'cbl-polyzone'
+author 'Venoxity Development'
 description 'Define zones of different shapes and test whether a point is inside or outside of the zone'
 version '2.6.2'
 
@@ -13,10 +15,10 @@ client_scripts {
   'EntityZone.lua',
   'CircleZone.lua',
   'ComboZone.lua',
-  'creation/client/*.lua'
+  'creation/client/*.lua',
+  'wrapper.lua'
 }
 
 server_scripts {
   'creation/server/*.lua',
-  'server.lua'
 }
