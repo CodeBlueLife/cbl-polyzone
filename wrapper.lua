@@ -7,7 +7,7 @@ AddEventHandler('cbl:playerLoaded', function()
     InitWrapperZones()
 end)
 
-RegisterNetEvent('cbl:playerLogout', function()
+AddEventHandler('cbl:playerLogout', function()
     playerLoaded = false
     for k, v in pairs(addedZones) do
         TriggerEvent('Polyzone:Exit', k, false, false, v.data or {})
