@@ -1,19 +1,15 @@
-local characterLoaded = false
+local playerLoaded = false
 local addedZones = {}
 local wCombozone
 
-RegisterNetEvent('cbl:setActiveCharacter', function()
-    characterLoaded = true
-    print("[TRACE] [Polyzone] Player loaded. Initializing wrapper zones.")
+AddEventHandler('cbl:playerLoaded', function()
+    playerLoaded = true
     InitWrapperZones()
 end)
 
 RegisterNetEvent('cbl:playerLogout', function()
-    characterLoaded = false
-    print("[TRACE] [Polyzone] Player logout triggered. Cleaning up zones.")
-
+    playerLoaded = false
     for k, v in pairs(addedZones) do
-        print("[TRACE] [Polyzone] Forcing exit for zone: " .. k)
         TriggerEvent('Polyzone:Exit', k, false, false, v.data or {})
     end
 
@@ -31,17 +27,12 @@ function CreateZoneForCombo(id, data)
     options.data.id = id
 
     if data.type == 'circle' then
-        print("[TRACE] [Polyzone] Creating circle zone: " .. id)
         return CircleZone:Create(data.center, data.radius, options)
     elseif data.type == 'poly' then
-        print("[TRACE] [Polyzone] Creating poly zone: " .. id)
         return PolyZone:Create(data.points, options)
     elseif data.type == 'box' then
-        print("[TRACE] [Polyzone] Creating box zone: " .. id)
         return BoxZone:Create(data.center, data.length, data.width, options)
     end
-
-    print("[TRACE] [Polyzone] Failed to create zone: unknown type for id " .. id)
 end
 
 function InitWrapperZones()
@@ -50,7 +41,6 @@ function InitWrapperZones()
     local createdZones = {}
 
     for k, v in pairs(addedZones) do
-        print("[TRACE] [Polyzone] Adding zone to wrapper: " .. k)
         local zone = CreateZoneForCombo(k, v)
         if zone then
             table.insert(createdZones, zone)
@@ -58,15 +48,14 @@ function InitWrapperZones()
     end
 
     wCombozone = ComboZone:Create(createdZones, { name = 'wrapper_combo' })
-    print("[TRACE] [Polyzone] ComboZone created successfully.")
+    print(("[TRACE] [Polyzone] Initialized %d Simple Polyzones"):format(#createdZones))
 
     wCombozone:onPlayerInOutExhaustive(function(isPointInside, testedPoint, insideZones, enteredZones, leftZones)
-        if not characterLoaded then return end
+        if not playerLoaded then return end
 
         if enteredZones and #enteredZones > 0 then
             for _, zone in ipairs(enteredZones) do
                 if zone.data and zone.data.id then
-                    print("[TRACE] [Polyzone] Entered zone: " .. zone.data.id)
                     TriggerEvent('Polyzone:Enter', zone.data.id, testedPoint, insideZones, zone.data)
                 end
             end
@@ -75,7 +64,6 @@ function InitWrapperZones()
         if leftZones and #leftZones > 0 then
             for _, zone in ipairs(leftZones) do
                 if zone.data and zone.data.id then
-                    print("[TRACE] [Polyzone] Exited zone: " .. zone.data.id)
                     TriggerEvent('Polyzone:Exit', zone.data.id, testedPoint, insideZones, zone.data)
                 end
             end
@@ -84,19 +72,12 @@ function InitWrapperZones()
 end
 
 function AddZoneAfterCreation(id, zoneData)
-    if not wCombozone then
-        print("[TRACE] [Polyzone] Attempted to add zone before ComboZone exists: " .. id)
-        return
-    end
+    if not wCombozone then return end
 
-    print("[TRACE] [Polyzone] Adding zone to ComboZone dynamically: " .. id)
     local zone = CreateZoneForCombo(id, zoneData)
 
     if zone then
         wCombozone:addZone(zone)
-        print("[TRACE] [Polyzone] Zone added to ComboZone: " .. id)
-    else
-        print("[TRACE] [Polyzone] Zone creation failed during dynamic add: " .. id)
     end
 end
 
@@ -104,7 +85,6 @@ end
 _POLYZONE = {
     Create = {
         Box = function(self, id, center, length, width, options, data)
-            print("[TRACE] [Polyzone] Creating BOX zone: " .. id)
             addedZones[id] = {
                 id = id,
                 type = 'box',
@@ -117,7 +97,6 @@ _POLYZONE = {
             AddZoneAfterCreation(id, addedZones[id])
         end,
         Poly = function(self, id, points, options, data)
-            print("[TRACE] [Polyzone] Creating POLY zone: " .. id)
             addedZones[id] = {
                 id = id,
                 type = 'poly',
@@ -128,7 +107,6 @@ _POLYZONE = {
             AddZoneAfterCreation(id, addedZones[id])
         end,
         Circle = function(self, id, center, radius, options, data)
-            print("[TRACE] [Polyzone] Creating CIRCLE zone: " .. id)
             addedZones[id] = {
                 id = id,
                 type = 'circle',
@@ -142,7 +120,6 @@ _POLYZONE = {
     },
     Remove = function(self, id)
         if addedZones[id] then
-            print("[TRACE] [Polyzone] Removing zone: " .. id)
             addedZones[id] = nil
         end
         return false
